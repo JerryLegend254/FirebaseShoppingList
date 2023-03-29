@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+cimport React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   StyleSheet,
@@ -12,20 +12,17 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  Keyboard,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 import { ShoppingItem } from "./components/ShoppingItem";
 import {
-  doc,
   app,
   db,
   collection,
   addDoc,
   getFirestore,
   getDocs,
-  deleteDoc
 } from "./firebase/index";
 
 export default function App() {
@@ -38,32 +35,24 @@ export default function App() {
         title,
         isChecked: false,
       });
+      console.log("Document written with ID: ", docRef.id);
       setTitle("");
     } catch (e) {
       console.error("Error adding document: ", e);
     }
-    Keyboard.dismiss();
     getShoppingItems();
   };
 
   const getShoppingItems = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "shopping"));
-      setItemList(querySnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id })))
-    } catch (e) {
-      console.log("Error: ", e)
-    }
+    const querySnapshot = await getDocs(collection(db, "shopping"));
+    // querySnapshot.forEach((doc) => {
+    //   const dataObj = doc.data();
+    //   console.log(`${doc.id} => ${dataObj.title}`);
+    //   setItemList([...itemList, { title: dataObj.title, id: doc.id, isChecked: dataObj.isChecked }])
+    // });
+    setItemList(querySnapshot.docs.map((doc) => ({data: doc.data(), id: doc.id })))
+    console.log(itemList[0].data.title)
   };
-  
-  const deleteShoppingList = async () => {
-    try {
-      const querySnapshot = await getDocs(collection(db, "shopping"));
-      querySnapshot.docs.map(item => deleteDoc(doc(db, "shopping", item.id)));
-      getShoppingItems();
-    } catch (e) {
-      console.log("Error: ", e)
-    }
-  }
 
   useEffect(() => {
     getShoppingItems();
@@ -74,20 +63,19 @@ export default function App() {
       <View style={styles.shoppingTitleView}>
         <Text style={styles.shoppingTitle}>Shopping list</Text>
         <View style={styles.endView}>
-          <Text style={styles.noItems}>{itemList.length}</Text>
-          <Pressable onPress={deleteShoppingList}>
+          <Text style={styles.noItems}>2</Text>
+          <Pressable>
             <MaterialIcons name="delete" size={30} color="black" />
           </Pressable>
         </View>
       </View>
       <View style={styles.itemContainer}>
-        {itemList.length > 0 ? <FlatList
-          data={itemList}
-          renderItem={({ item }) => <ShoppingItem title={item.title} isChecked={item.isChecked} id={item.id} getItems={getShoppingItems} />}
-            keyExtractor={(item) => item.id}
-        /> : <ActivityIndicator size={100} style={{position: "absolute", top: "30%", left: "35%"}} />}
 
-          
+          <FlatList
+            data={itemList}
+            renderItem={(item) => <ShoppingItem title={item.data.title} />}
+            keyExtractor={item => item.id}
+          />
         
       </View>
       <KeyboardAvoidingView

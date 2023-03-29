@@ -1,18 +1,50 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { Text, View, StyleSheet, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
+import { db,doc, updateDoc, deleteDoc} from "../firebase/index";
 
-export const ShoppingItem = ({item}) => {
 
+
+export const ShoppingItem = ({ title, isChecked, id, getItems}) => {
+  const [Checked, setIsChecked] = useState(isChecked);
+  
+  const updateChecked = async () => {
+    try {
+      const shoppingRef = doc(db, "shopping", id);
+
+      // Set the "capital" field of the city 'DC'
+      await updateDoc(shoppingRef, {
+        isChecked: Checked,
+      });
+    } catch (e) {
+      console.log("Error", e)
+    }
+  }
+
+  const deleteItem = async () => {
+    await deleteDoc(doc(db, "shopping", id));
+    getItems();
+  }
+
+  useEffect(() => {
+    updateChecked()
+  }, [Checked])
     return (
       <View style={styles.itemView}>
         <View style={styles.startView}>
-          <Pressable>
-            <View style={styles.checkView}></View>
+          <Pressable onPress={() => setIsChecked(!Checked)}>
+            <View style={styles.checkView}>
+              {!Checked ? (
+                <AntDesign name="checkcircleo" size={24} color="black" />
+              ) : (
+                <AntDesign name="checkcircle" size={24} color="black" />
+              )}
+            </View>
           </Pressable>
-          <Text style={styles.itemText}>{item}</Text>
+          <Text style={styles.itemText}>{title}</Text>
         </View>
-        <Pressable>
+        <Pressable onPress={deleteItem}>
           <MaterialIcons name="delete" size={30} color="black" />
         </Pressable>
       </View>
@@ -32,10 +64,6 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   checkView: {
-    width: 20,
-    height: 20,
-      backgroundColor: "#bc6c25",
-      borderRadius: 5,
     marginRight: 30,
     },
     startView: {
